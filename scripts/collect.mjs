@@ -2,7 +2,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import {
   CATEGORY_KEYS, categoryFor, normalizeRepository, parseTrendingRepos,
-  periodMetrics, selectCandidates,
+  periodMetrics, quotaAllows, selectCandidates,
 } from './core.mjs'
 import { enrichCards, normalizedLedger } from './ai.mjs'
 
@@ -15,14 +15,15 @@ const githubToken = process.env.GITHUB_TOKEN?.trim()
 const warnings = []
 let requestCount = 0
 let searchCount = 0
-let remaining = Number.POSITIVE_INFINITY
+let coreRemaining = Number.POSITIVE_INFINITY
+let searchRemaining = Number.POSITIVE_INFINITY
 let stopped = false
 let lastSearchAt = 0
 
 class StopCollectionError extends Error {}
 
 async function githubJson(path, { search = false } = {}) {
-  if (stopped || requestCount >= MAX_REQUESTS || remaining < 100) {
+  if (stopped || !quotaAllows({ requestCount, maxRequests: MAX_REQUESTS, coreRemaining, searchRemaining, search })) {
     stopped = true
     throw new StopCollectionError('达到 GitHub 请求或剩余配额限制')
   }
@@ -36,7 +37,7 @@ async function githubJson(path, { search = false } = {}) {
   const url = new URL(path, 'https://api.github.com')
   let lastError
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    if (requestCount >= MAX_REQUESTS || remaining < 100) {
+    if (!quotaAllows({ requestCount, maxRequests: MAX_REQUESTS, coreRemaining, searchRemaining, search })) {
       stopped = true
       throw new StopCollectionError('达到 GitHub 请求或剩余配额限制')
     }
@@ -52,14 +53,15 @@ async function githubJson(path, { search = false } = {}) {
         signal: AbortSignal.timeout(15_000),
       })
       const header = response.headers.get('x-ratelimit-remaining')
-      if (header !== null && Number.isFinite(Number(header))) remaining = Number(header)
+      if (header !== null && Number.isFinite(Number(header))) {
+        if (search) searchRemaining = Number(header)
+        else coreRemaining = Number(header)
+      }
       if (response.ok) return response.json()
       if (response.status === 404 || response.status === 422) throw new Error(`GitHub HTTP ${response.status}`)
       if (response.status === 403 || response.status === 429) {
-        if (remaining < 100 || response.status === 429) {
-          stopped = true
-          throw new StopCollectionError(`GitHub 限流 HTTP ${response.status}`)
-        }
+        stopped = true
+        throw new StopCollectionError(`GitHub 限流或拒绝访问 HTTP ${response.status}`)
       }
       lastError = new Error(`GitHub HTTP ${response.status}`)
       if (attempt === 0) {

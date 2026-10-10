@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { categoryFor, flattenHistory, normalizeRepository, parseTrendingRepos, periodMetrics, selectCandidates } from '../scripts/core.mjs'
+import { categoryFor, flattenHistory, normalizeRepository, parseTrendingRepos, periodMetrics, quotaAllows, selectCandidates } from '../scripts/core.mjs'
 import { rankRepos } from '../src/data'
 import type { RadarData, Repo } from '../src/types'
 
@@ -12,6 +12,16 @@ const raw = (id: number, extra: Record<string, unknown> = {}) => ({
   created_at: '2026-01-01T00:00:00Z', pushed_at: '2026-10-09T00:00:00Z',
   default_branch: 'main', private: false, fork: false, archived: false, disabled: false,
   ...extra,
+})
+
+describe('GitHub request budgets', () => {
+  it('keeps search quota separate from the core REST quota', () => {
+    const budget = { requestCount: 12, maxRequests: 750, coreRemaining: 4_800, searchRemaining: 29 }
+    expect(quotaAllows({ ...budget, search: true })).toBe(true)
+    expect(quotaAllows({ ...budget, searchRemaining: 1, search: true })).toBe(false)
+    expect(quotaAllows({ ...budget, searchRemaining: 1, search: false })).toBe(true)
+    expect(quotaAllows({ ...budget, coreRemaining: 99, search: true })).toBe(false)
+  })
 })
 
 describe('GitHub day buckets', () => {

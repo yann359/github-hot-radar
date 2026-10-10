@@ -10,9 +10,10 @@ const assert = (condition, message) => { if (!condition) throw new Error(`榜单
 
 assert(data.schemaVersion === 1 && !data.demo, '数据版本或演示标记不正确')
 assert(validDate(data.generatedAt), '缺少生成时间')
-assert(data.lastSuccessfulAt === null || validDate(data.lastSuccessfulAt), '成功更新时间无效')
+assert(validDate(data.lastSuccessfulAt), '尚无成功采集的数据')
 assert(Array.isArray(data.repos) && data.repos.length > 0 && data.repos.length <= 300, '候选数量不正确')
 assert(data.candidateCount === data.repos.length, '候选计数与列表不一致')
+assert(data.repos.some(repo => Number.isSafeInteger(repo.periodStars?.[7])), '全部仓库都缺少近 7 天涨星数据')
 assert(Array.isArray(data.warnings) && data.warnings.every(item => typeof item === 'string'), '异常状态无效')
 assert(typeof data.source?.history === 'string' && typeof data.source?.note === 'string', '缺少来源说明')
 

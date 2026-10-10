@@ -1,6 +1,11 @@
 export const PERIODS = [1, 7, 10, 30]
 export const CATEGORY_KEYS = ['ai', 'tools', 'web', 'data', 'learning', 'other']
 
+export function quotaAllows({ requestCount, maxRequests, coreRemaining, searchRemaining, search }) {
+  return requestCount < maxRequests && coreRemaining >= 100 &&
+    (!search || searchRemaining >= 2)
+}
+
 export const CATEGORY_LABELS = {
   ai: 'AI',
   tools: '开发工具',
