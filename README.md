@@ -1,5 +1,11 @@
 # GitHub 热点雷达
 
+## 🌐 在线体验
+
+**[点击打开 GitHub 热点雷达 →](https://yann359.github.io/github-hot-radar/)**
+
+无需安装，手机和电脑浏览器均可直接访问。
+
 一个面向开源学习的手机优先网站：看近期受关注的仓库，读简短中文解读，收藏值得继续学习的项目。适合放进个人作品集，也能作为 React、TypeScript、GitHub API 和 Actions 的完整实践。
 
 ## 网站能做什么
