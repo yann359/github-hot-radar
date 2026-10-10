@@ -1,0 +1,89 @@
+name: 更新热点雷达
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: github-hot-radar
+  cancel-in-progress: false
+
+jobs:
+  collect-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    steps:
+      - name: 读取源码
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: 准备 Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: 安装依赖
+        run: npm ci
+      - name: 首次与手动运行时检查三个真实仓库
+        if: github.event_name != 'schedule'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run check:github
+      - name: 读取或创建数据分支
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --heads origin radar-data > /dev/null; then
+            git fetch origin radar-data:refs/remotes/origin/radar-data
+            git worktree add -b radar-data "$RUNNER_TEMP/radar-data" origin/radar-data
+          else
+            git worktree add --orphan -b radar-data "$RUNNER_TEMP/radar-data"
+          fi
+      - name: 采集、计算和生成中文卡片
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          RADAR_STATE_DIR: ${{ runner.temp }}/radar-data
+          RADAR_OUTPUT_FILE: public/data/radar.v1.json
+        run: npm run collect
+      - name: 校验待发布榜单
+        run: npm run validate:data
+      - name: 保存采集状态
+        shell: bash
+        run: |
+          git -C "$RUNNER_TEMP/radar-data" config user.name "github-actions[bot]"
+          git -C "$RUNNER_TEMP/radar-data" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$RUNNER_TEMP/radar-data" add state.json
+          if ! git -C "$RUNNER_TEMP/radar-data" diff --cached --quiet; then
+            git -C "$RUNNER_TEMP/radar-data" commit -m "更新热点采集状态"
+            git -C "$RUNNER_TEMP/radar-data" push origin HEAD:refs/heads/radar-data
+          fi
+      - name: 验证数据和页面
+        run: |
+          npm test
+          npm run build
+      - name: 打包 Pages 网站
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+          retention-days: 1
+
+  deploy:
+    needs: collect-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 发布到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
