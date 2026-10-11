@@ -3,8 +3,10 @@ import type { ChangeEvent, ReactNode } from 'react'
 import { availableLanguages, CATEGORIES, CATEGORY_NAME, compactNumber, PERIODS, rankRepos, timeLabel } from './data'
 import { emptyStore, importJsonText, loadStore, saveStore, upsertEntry, backupJson } from './storage'
 import type { Board, Category, LearningStore, Period, RadarData, Repo } from './types'
+import { useTheme } from './theme'
+import type { ThemePreference } from './theme'
 
-type IconName = 'radar' | 'bookmark' | 'star' | 'search' | 'arrow' | 'back' | 'clock' | 'check' | 'download' | 'upload' | 'github' | 'warning'
+type IconName = 'radar' | 'bookmark' | 'star' | 'search' | 'arrow' | 'back' | 'clock' | 'check' | 'download' | 'upload' | 'github' | 'warning' | 'sun' | 'moon' | 'system'
 type Route = {
   page: 'radar' | 'favorites' | 'detail'
   repoId: number | null
@@ -32,6 +34,9 @@ function Icon({ name, size = 20, strokeWidth = 1.9 }: { name: IconName; size?: n
     upload: <><path d="M12 17V5m0 0 4 4m-4-4-4 4" /><path d="M5 17v3h14v-3" /></>,
     github: <><path d="M9 19c-4.8 1.4-4.8-2.4-6.7-2.8" /><path d="M9 21v-3.1c-4.5-1.2-5.8-4.2-5.1-8.4.5-2.4 2.2-4.2 4.5-5-.1-.9 0-2 .4-2.8 1.2 0 2.4.6 3.2 1.2 2.5-.6 5.2-.6 7.6 0 .8-.6 2-1.2 3.2-1.2.4.9.5 1.9.4 2.8 2.3.8 4 2.6 4.5 5 .7 4.2-.6 7.2-5.1 8.4V21" transform="translate(1 0) scale(.9 1)" /></>,
     warning: <><path d="M12 3 2 21h20z" /><path d="M12 9v5m0 3v.2" /></>,
+    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" /></>,
+    moon: <path d="M20.5 13.3A8.7 8.7 0 0 1 10.7 3.5 8.7 8.7 0 1 0 20.5 13.3Z" />,
+    system: <><rect x="3" y="4" width="18" height="13" rx="2" /><path d="M8 21h8m-4-4v4" /></>,
   }
   return <svg {...common}>{paths[name]}</svg>
 }
@@ -93,10 +98,10 @@ function Trend({ repo, large = false }: { repo: Repo; large?: boolean }) {
   const line = points.map((point, index) => `${index ? 'L' : 'M'}${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ')
   const area = `${line} L${width},${height} L0,${height} Z`
   return <svg className={large ? 'trend large' : 'trend'} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label={`最近${values.length}个 GitHub 日级数据桶的 star 变化`}>
-    {large && <><path d={`M0,${height / 2} H${width}`} stroke="#e6eafa" strokeWidth="1" /><path d={`M0,${bottom} H${width}`} stroke="#e6eafa" strokeWidth="1" /></>}
-    <path d={area} fill="#e9e7ff" opacity=".85" />
-    <path d={line} fill="none" stroke="#7469d8" strokeWidth={large ? 2.5 : 2} vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
-    {large && <circle cx={points.at(-1)?.x} cy={points.at(-1)?.y} r="4" fill="#7469d8" />}
+    {large && <><path d={`M0,${height / 2} H${width}`} stroke="var(--chart-grid, #e6eafa)" strokeWidth="1" /><path d={`M0,${bottom} H${width}`} stroke="var(--chart-grid, #e6eafa)" strokeWidth="1" /></>}
+    <path d={area} fill="var(--chart-area, #e9e7ff)" opacity=".85" />
+    <path d={line} fill="none" stroke="var(--chart-line, #7469d8)" strokeWidth={large ? 2.5 : 2} vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+    {large && <circle cx={points.at(-1)?.x} cy={points.at(-1)?.y} r="4" fill="var(--chart-line, #7469d8)" />}
   </svg>
 }
 
@@ -109,6 +114,7 @@ function repositoryCountLabel(count: number) {
 }
 
 export default function App() {
+  const [theme, changeTheme] = useTheme()
   const [data, setData] = useState<RadarData | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -263,7 +269,17 @@ export default function App() {
           <button className={route.page === 'radar' ? 'selected' : ''} onClick={() => navigate('#/radar')}>发现</button>
           <button className={route.page === 'favorites' ? 'selected' : ''} onClick={() => navigate('#/favorites')}>我的收藏 <span>{savedEntries.length}</span></button>
         </nav>
-        <a className="github-top-link" href="https://github.com/trending" target="_blank" rel="noreferrer"><Icon name="github" size={18} /><span>GitHub 趋势</span><Icon name="arrow" size={14} /></a>
+        <div className="topbar-actions">
+          <label className="theme-control" title="切换页面外观">
+            <Icon name={theme === 'dark' ? 'moon' : theme === 'light' ? 'sun' : 'system'} size={18} />
+            <select aria-label="页面外观" value={theme} onChange={event => changeTheme(event.target.value as ThemePreference)}>
+              <option value="system">跟随系统</option>
+              <option value="light">浅色模式</option>
+              <option value="dark">深色模式</option>
+            </select>
+          </label>
+          <a className="github-top-link" href="https://github.com/trending" target="_blank" rel="noreferrer"><Icon name="github" size={18} /><span>GitHub 趋势</span><Icon name="arrow" size={14} /></a>
+        </div>
       </div>
     </header>
 

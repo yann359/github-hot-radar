@@ -14,6 +14,7 @@
 - 分类、编程语言、关键词筛选；打开仓库详情和 GitHub 原地址。
 - DeepSeek 每天限量生成中文学习卡片；项目没有卡片时显示仓库原始资料。
 - 本机收藏、已读、备注、JSON 导入导出。收藏数据只保存在当前浏览器，换设备需自行导出和导入。
+- 右上角切换跟随系统、浅色或深色模式；默认跟随系统，手动选择会在当前浏览器记住。夜间配色参考 [NewsNow](https://newsnow.busiyi.world/)，覆盖榜单、收藏、详情和趋势图。
 
 **统计口径：**星标变化来自 [GitHub 官方日级历史接口](https://docs.github.com/en/rest/activity/starring#get-repository-star-history)。最新日尚未结算，日界线不保证对应北京时间或 UTC。榜单只覆盖当前发现并追踪的约 300 个候选仓库，不能代表全站无遗漏排行。GitHub Trending 用于发现候选；页面结构变化时会回退到官方搜索。
 

@@ -4,6 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f7f9ff" />
+    <script>
+      // Apply before the first paint to avoid a bright flash in dark mode.
+      (() => {
+        let preference = 'system'
+        try { preference = localStorage.getItem('github-radar-theme') || 'system' } catch {}
+        const dark = preference === 'dark' || (preference !== 'light' && preference !== 'dark' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+        document.querySelector('meta[name="theme-color"]').content = dark ? '#1c1c1e' : '#f7f9ff'
+      })()
+    </script>
     <meta name="description" content="发现值得学习的 GitHub 开源项目：近期涨星、中文解读与个人收藏。" />
     <title>GitHub 热点雷达</title>
   </head>

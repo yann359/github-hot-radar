@@ -1,0 +1,101 @@
+/* Dark palette inspired by NewsNow: charcoal, blue-gray surfaces, warm red glow.
+   Light colors remain in styles.css as fallbacks to preserve the original design. */
+:root[data-theme="dark"] {
+  --page-bg: #1c1c1e;
+  --surface: #282c34;
+  --surface-soft: #23262d;
+  --surface-inset: #1f2228;
+  --text-primary: #eceef4;
+  --text-secondary: #c0c6d2;
+  --text-muted: #a0a8b8;
+  --divider-text: #636d80;
+  --border: #3a404d;
+  --accent: #a5bffc;
+  --accent-soft: #303d56;
+  --accent-solid: #526da5;
+  --accent-hover: #607db7;
+  --accent-border: #647ca7;
+  --bookmark-fill: #425980;
+  --peach-bg: #44332f;
+  --peach: #e9b195;
+  --mint-bg: #253b39;
+  --mint: #91c9bb;
+  --warning-bg: #362e26;
+  --warning-border: #5b4831;
+  --warning-text: #dfbd86;
+  --point-lavender: #9bb4ed;
+  --point-mint: #91c9bb;
+  --point-peach: #e9aa95;
+  --topbar-bg: rgba(28, 28, 30, .88);
+  --mobile-nav-bg: rgba(28, 28, 30, .95);
+  --footer-bg: rgba(28, 28, 30, .65);
+  --empty-bg: rgba(40, 44, 52, .8);
+  --chart-grid: #3a4353;
+  --chart-area: #344568;
+  --chart-line: #a5bffc;
+}
+
+:root[data-theme="dark"] .app-shell {
+  background: radial-gradient(ellipse 85% 32rem at 50% 0, #422c30 0, transparent 100%), var(--page-bg);
+}
+:root[data-theme="dark"] .hero {
+  background: linear-gradient(110deg, #2b2c34, #30374a 65%, #3a4966);
+  border-color: #41495d;
+}
+:root[data-theme="dark"] .gradient-text {
+  background-image: linear-gradient(100deg, #acc5ff, #e1a2af);
+}
+:root[data-theme="dark"] .brand-mark,
+:root[data-theme="dark"] .footer-mark,
+:root[data-theme="dark"] .hero-core {
+  background: linear-gradient(140deg, #546da2, #8396c1);
+  box-shadow: 0 8px 24px #11151c55;
+}
+:root[data-theme="dark"] .hero-orbit { border-color: #a8bbeb30; }
+:root[data-theme="dark"] .orbit-point { box-shadow: 0 0 0 6px #a8bbeb0e; }
+:root[data-theme="dark"] .hero,
+:root[data-theme="dark"] .stats-bar,
+:root[data-theme="dark"] .filter-panel,
+:root[data-theme="dark"] .repo-card,
+:root[data-theme="dark"] .panel { box-shadow: 0 8px 24px #00000012; }
+:root[data-theme="dark"] .repo-card:hover { box-shadow: 0 11px 28px #00000026; }
+:root[data-theme="dark"] .board-tabs button.active { box-shadow: 0 2px 8px #00000025; }
+:root[data-theme="dark"] .search-field:focus-within { box-shadow: 0 0 0 3px #a5bffc20; }
+:root[data-theme="dark"] .github-cta { box-shadow: 0 8px 19px #00000025; }
+:root[data-theme="dark"] .mobile-nav { box-shadow: 0 -8px 24px #00000015; }
+
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.theme-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--border, #e4e7f2);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+  color: var(--text-secondary, #59657c);
+}
+.theme-control select {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  min-height: 42px;
+}
+.theme-control select option {
+  background: var(--surface, #fff);
+  color: var(--text-primary, #25304c);
+}
+.theme-control:focus-within { outline: 3px solid var(--accent-border, #a5a0f4); outline-offset: 3px; }
+.theme-control select:focus-visible { outline: none; }
+@media (max-width: 680px) {
+  .topbar-inner { gap: 8px; }
+  .topbar-actions { gap: 6px; }
+  .theme-control { width: 44px; height: 44px; padding: 0; justify-content: center; }
+  .theme-control select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+  .github-top-link { width: 44px; height: 44px; }
+}
